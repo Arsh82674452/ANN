@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import joblib
 import os
-from tensorflow.keras.models import load_model
+from sklearn.neural_network import MLPClassifier
 
 # =========================
 # PAGE CONFIG
@@ -17,19 +17,32 @@ st.markdown("Predict whether a customer will churn based on their profile.")
 # =========================
 @st.cache_resource
 def load_model_files():
-    model_path = "models/model.h5"
-    scaler_path = "models/scaler.pkl"
+    import pandas as pd
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import StandardScaler, LabelEncoder
+    from sklearn.neural_network import MLPClassifier
 
-    if not os.path.exists(model_path) or not os.path.exists(scaler_path):
-        st.error("❌ Model files not found.\n\n👉 Run `python churn_ann.py` first.")
-        st.stop()
+    df = pd.read_csv("data/Artificial_Neural_Network_Case_Study_data.csv")
+    df = df.drop(columns=["RowNumber", "CustomerId", "Surname"])
 
-    model = load_model(model_path)
-    scaler = joblib.load(scaler_path)
+    le = LabelEncoder()
+    df["Gender"] = le.fit_transform(df["Gender"])
+    df = pd.get_dummies(df, columns=["Geography"], drop_first=True)
+
+    X = df.drop(columns=["Exited"]).values
+    y = df["Exited"].values
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+
+    model = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=100)
+    model.fit(X_train, y_train)
 
     return model, scaler
-
-model, scaler = load_model_files()
 
 # =========================
 # INPUT UI
