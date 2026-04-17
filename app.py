@@ -22,23 +22,29 @@ def load_model_files():
     from sklearn.preprocessing import StandardScaler, LabelEncoder
     from sklearn.neural_network import MLPClassifier
 
+    # Load dataset
     df = pd.read_csv("data/Artificial_Neural_Network_Case_Study_data.csv")
     df = df.drop(columns=["RowNumber", "CustomerId", "Surname"])
 
+    # Encoding
     le = LabelEncoder()
     df["Gender"] = le.fit_transform(df["Gender"])
     df = pd.get_dummies(df, columns=["Geography"], drop_first=True)
 
+    # Features
     X = df.drop(columns=["Exited"]).values
     y = df["Exited"].values
 
+    # Split
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
+    # Scaling (IMPORTANT)
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_train)
 
+    # Model
     model = MLPClassifier(hidden_layer_sizes=(64, 32), max_iter=100)
     model.fit(X_train, y_train)
 
